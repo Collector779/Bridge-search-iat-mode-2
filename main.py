@@ -48,7 +48,7 @@ def pobierz_losowe_proxy():
         proxy_list = resp.text.strip().split('\n')
         proxy_list = [p.strip() for p in proxy_list if p.strip()]
         if not proxy_list:
-            print("[!] Lista proxy pusta.")
+            print("Lista proxy pusta.")
             return None
         proxy = random.choice(proxy_list)
         return {
@@ -56,7 +56,7 @@ def pobierz_losowe_proxy():
             "https": f"http://{proxy}",
         }
     except Exception as e:
-        print(f"[!] Błąd przy pobieraniu proxy: {e}")
+        print(f"Błąd przy pobieraniu proxy: {e}")
         return None
 
 def pobierz_mostki(proxy=None):
@@ -67,7 +67,7 @@ def pobierz_mostki(proxy=None):
         response = session.get(URL, proxies=proxy, timeout=15)
         response.raise_for_status()
     except Exception as e:
-        print(f"[!] Błąd przy połączeniu ({proxy}): {e}")
+        print(f"Błąd przy połączeniu ({proxy}): {e}")
         return [], []
 
     text = response.text
@@ -93,40 +93,44 @@ def zapisz_do_pliku(mostki):
         with open(PLIK_WYJSCIA, "a", encoding="utf-8") as f:
             for m in mostki:
                 f.write(m + "\n")
-        print(f"[💾] Zapisano {len(mostki)} mostek/mostki do pliku.")
+        print(f"Zapisano {len(mostki)} mostek/mostki do pliku.")
         for m in mostki:
             print("   ", m)
     except Exception as e:
-        print(f"[!] Błąd przy zapisie do pliku: {e}")
+        print(f"Błąd przy zapisie do pliku: {e}")
 
 def main():
     while True:
-        print("[🔄] Sprawdzam nowe mostki z losowym proxy i losowymi nagłówkami...")
+        print("Sprawdzam nowe mostki z losowym proxy i losowymi nagłówkami...")
 
         proxy = pobierz_losowe_proxy()
         if proxy is None:
-            print("[!] Brak działającego proxy. Czekam 20 sekund...\n")
+            print("Brak działającego proxy. Czekam 20 sekund...\n")
             time.sleep(20)
             continue
 
         iat2, wszystkie = pobierz_mostki(proxy=proxy)
 
         if iat2:
-            print(f"[✔] Znaleziono {len(iat2)} mostek/mostki z iat-mode=2:")
+            print(f"Znaleziono {len(iat2)} mostek/mostki z iat-mode=2:")
             zapisz_do_pliku(iat2)
         elif wszystkie:
-            print("[~] Nie znaleziono mostków z iat-mode=2, ale znaleziono inne obfs4:")
+            print("Nie znaleziono mostków z iat-mode=2, ale znaleziono inne obfs4:")
             for m in wszystkie:
                 print("   ", m)
         else:
-            print("[✘] Nie znaleziono żadnych mostków obfs4.")
+            print("Nie znaleziono żadnych mostków obfs4.")
+
+        # Jeśli nie znaleziono żadnych mostków, nie czekamy - od razu kolejna próba
+        if not iat2 and not wszystkie:
+            continue
 
         sleep_time = random.uniform(2, 8)
-        print(f"[⏳] Czekam {round(sleep_time,1)} sek...\n")
+        print(f"Czekam {round(sleep_time,1)} sek...\n")
         time.sleep(sleep_time)
 
 if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        print("\n[!] Przerwano ręcznie. Kończę działanie.")
+        print("\nPrzerwano ręcznie. Kończę działanie.")
