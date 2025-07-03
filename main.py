@@ -46,9 +46,11 @@ def pobierz_losowe_proxy():
     try:
         resp = requests.get(PROXY_LIST_URL, timeout=45)
         proxy_list = resp.text.strip().split('\n')
-        proxy_list = [p.strip() for p in proxy_list if p.strip()]
+        # Filtrowanie tylko tych, które wyglądają jak IP:PORT
+        pattern = re.compile(r"^\d{1,3}(?:\.\d{1,3}){3}:\d{2,5}$")
+        proxy_list = [p.strip() for p in proxy_list if pattern.match(p.strip())]
         if not proxy_list:
-            print("Lista proxy pusta.")
+            print("Lista proxy pusta lub brak poprawnych wpisów.")
             return None
         proxy = random.choice(proxy_list)
         return {
