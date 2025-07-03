@@ -2,6 +2,7 @@ import time
 import requests
 import random
 import html
+import re
 
 URL = "https://bridges.torproject.org/bridges?transport=obfs4"
 PROXY_LIST_URL = "https://api.proxyscrape.com/v2/?request=displayproxies&protocol=https&timeout=500&country=all&ssl=all&anonymity=all"
