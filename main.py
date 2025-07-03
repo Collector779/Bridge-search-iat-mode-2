@@ -6,8 +6,8 @@ import re
 from bs4 import BeautifulSoup
 
 URL = "https://bridges.torproject.org/bridges?transport=obfs4"
-PROXY_LIST_URL = "https://api.proxyscrape.com/v2/?request=displayproxies&protocol=https&timeout=500&country=all&ssl=all&anonymity=all"
 PLIK_WYJSCIA = "gotowemostki.txt"
+PROXY_LIST_URL = "https://api.proxyscrape.com/v2/?request=displayproxies&protocol=https&timeout=500&country=all&ssl=all&anonymity=all"  # lub Twój własny plik
 
 USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/91.0.4472.124 Safari/537.36",
@@ -46,20 +46,25 @@ def losowe_naglowki():
 
 def pobierz_losowe_proxy():
     try:
-        resp = requests.get(PROXY_LIST_URL, timeout=45)
+        print(f"[DEBUG] Pobieram listę proxy z {PROXY_LIST_URL}")
+        resp = requests.get(PROXY_LIST_URL, timeout=20)
         proxy_list = resp.text.strip().split('\n')
-        pattern = re.compile(r"^\d{1,3}(?:\.\d{1,3}){3}:\d{2,5}$")
+        pattern = re.compile(r"^\d{1,3}(?:\.\d{1,3}){3}:(3128|8080|443)$")
         proxy_list = [p.strip() for p in proxy_list if pattern.match(p.strip())]
+        print(f"[DEBUG] Liczba pobranych HTTPS proxy: {len(proxy_list)}")
         if not proxy_list:
+            print("[DEBUG] Proxy LISTA PUSTA! Zawartość odpowiedzi:")
+            print(resp.text[:500])
             print("Lista proxy pusta lub brak poprawnych wpisów.")
             return None
         proxy = random.choice(proxy_list)
+        print(f"[DEBUG] Wylosowane proxy: {proxy}")
         return {
             "http": f"http://{proxy}",
             "https": f"http://{proxy}",
         }
     except Exception as e:
-        print(f"Błąd przy pobieraniu proxy: {e}")
+        print(f"[DEBUG] Błąd przy pobieraniu proxy: {e}")
         return None
 
 def pobierz_mostki(proxy=None):
@@ -67,26 +72,38 @@ def pobierz_mostki(proxy=None):
     try:
         headers = losowe_naglowki()
         session.headers.update(headers)
+        if proxy:
+            print(f"[DEBUG] Pobieram mostki przez proxy: {proxy}")
+        else:
+            print(f"[DEBUG] Pobieram mostki bez proxy...")
         response = session.get(URL, proxies=proxy, timeout=15)
+        print(f"[DEBUG] Kod odpowiedzi HTTP: {response.status_code}")
         response.raise_for_status()
     except Exception as e:
-        print(f"Błąd przy połączeniu ({proxy}): {e}")
+        print(f"[DEBUG] Błąd przy połączeniu ({proxy}): {e}")
         return [], []
 
     soup = BeautifulSoup(response.text, "html.parser")
     bridge_div = soup.find("div", {"id": "bridgelines"})
     if not bridge_div:
+        print("[DEBUG] Nie znaleziono div-a o id='bridgelines'!")
+        print("[DEBUG] Fragment HTML:\n", response.text[:700])
         return [], []
 
+    print(f"[DEBUG] Zawartość bridge_div:\n{bridge_div.text.strip()}")
     lines = [html.unescape(line.strip()) for line in bridge_div.text.splitlines() if line.strip().startswith("obfs4")]
-
+    print(f"[DEBUG] Ilość znalezionych linii z obfs4: {len(lines)}")
     wszystkie_mostki = []
     iat2_mostki = []
 
     for line in lines:
+        print(f"[DEBUG] Mostek: {line}")
         wszystkie_mostki.append(line)
         if "iat-mode=2" in line:
             iat2_mostki.append(line)
+
+    print(f"[DEBUG] Mostki z iat-mode=2: {len(iat2_mostki)}")
+    print(f"[DEBUG] Pozostałe mostki: {len(wszystkie_mostki)}")
 
     return iat2_mostki, wszystkie_mostki
 
@@ -123,10 +140,7 @@ def main():
         else:
             print("Nie znaleziono żadnych mostków obfs4.")
 
-        if not iat2 and not wszystkie:
-            continue
-
-        sleep_time = random.uniform(2, 8)
+        sleep_time = random.uniform(3, 5)
         print(f"Czekam {round(sleep_time,1)} sek...\n")
         time.sleep(sleep_time)
 
