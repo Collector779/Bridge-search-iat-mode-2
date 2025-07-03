@@ -3,6 +3,7 @@ import requests
 import random
 import html
 import re
+from bs4 import BeautifulSoup
 
 URL = "https://bridges.torproject.org/bridges?transport=obfs4"
 PROXY_LIST_URL = "https://api.proxyscrape.com/v2/?request=displayproxies&protocol=https&timeout=500&country=all&ssl=all&anonymity=all"
@@ -72,21 +73,20 @@ def pobierz_mostki(proxy=None):
         print(f"Błąd przy połączeniu ({proxy}): {e}")
         return [], []
 
-    text = response.text
-    idx = text.find("Here are your bridge lines:")
-    if idx == -1:
+    soup = BeautifulSoup(response.text, "html.parser")
+    bridge_div = soup.find("div", {"id": "bridgelines"})
+    if not bridge_div:
         return [], []
 
-    fragment = text[idx:idx+2000]
+    lines = [html.unescape(line.strip()) for line in bridge_div.text.splitlines() if line.strip().startswith("obfs4")]
+
     wszystkie_mostki = []
     iat2_mostki = []
 
-    for line in fragment.splitlines():
-        line = html.unescape(line.strip())
-        if line.startswith("obfs4"):
-            wszystkie_mostki.append(line)
-            if "iat-mode=2" in line:
-                iat2_mostki.append(line)
+    for line in lines:
+        wszystkie_mostki.append(line)
+        if "iat-mode=2" in line:
+            iat2_mostki.append(line)
 
     return iat2_mostki, wszystkie_mostki
 
@@ -123,7 +123,6 @@ def main():
         else:
             print("Nie znaleziono żadnych mostków obfs4.")
 
-        # Jeśli nie znaleziono żadnych mostków, nie czekamy - od razu kolejna próba
         if not iat2 and not wszystkie:
             continue
 
