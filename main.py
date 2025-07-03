@@ -115,7 +115,7 @@ def main():
             print(f"Znaleziono {len(iat2)} mostek/mostki z iat-mode=2:")
             zapisz_do_pliku(iat2)
         elif wszystkie:
-            print("Nie znaleziono mostków z iat-mode=2, ale znaleziono inne obfs4:")
+            print("Nie znaleziono mostków z iat-mode=2, ale znaleziono inne obfs4 ani 5:")
             for m in wszystkie:
                 print("   ", m)
         else:
