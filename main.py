@@ -101,12 +101,12 @@ def zapisz_do_pliku(mostki):
 
 def main():
     while True:
-        print("Sprawdzam nowe mostki z losowym proxy i losowymi nagłówkami...")
+        print("Sprawdzam nowe mostki obfs4...")
 
         proxy = pobierz_losowe_proxy()
         if proxy is None:
-            print("Brak działającego proxy. Czekam 20 sekund...\n")
-            time.sleep(20)
+            print("Brak działającego proxy. Czekam 3 sekund...\n")
+            time.sleep(3)
             continue
 
         iat2, wszystkie = pobierz_mostki(proxy=proxy)
@@ -115,7 +115,7 @@ def main():
             print(f"Znaleziono {len(iat2)} mostek/mostki z iat-mode=2:")
             zapisz_do_pliku(iat2)
         elif wszystkie:
-            print("Nie znaleziono mostków z iat-mode=2, ale znaleziono inne obfs4 ani 5:")
+            print("Nie znaleziono mostków z iat-mode=2, ale znaleziono inne obfs4:")
             for m in wszystkie:
                 print("   ", m)
         else:
