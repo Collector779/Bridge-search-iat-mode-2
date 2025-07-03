@@ -47,7 +47,6 @@ def pobierz_losowe_proxy():
     try:
         resp = requests.get(PROXY_LIST_URL, timeout=45)
         proxy_list = resp.text.strip().split('\n')
-        # Filtrowanie tylko tych, które wyglądają jak IP:PORT
         pattern = re.compile(r"^\d{1,3}(?:\.\d{1,3}){3}:\d{2,5}$")
         proxy_list = [p.strip() for p in proxy_list if pattern.match(p.strip())]
         if not proxy_list:
@@ -108,7 +107,7 @@ def main():
 
         proxy = pobierz_losowe_proxy()
         if proxy is None:
-            print("Brak działającego proxy. Czekam 3 sekund...\n")
+            print("Brak działającego proxy. Czekam 3 sekundy...\n")
             time.sleep(3)
             continue
 
