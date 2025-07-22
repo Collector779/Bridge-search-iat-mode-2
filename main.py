@@ -4,10 +4,12 @@ import random
 import html
 import re
 from bs4 import BeautifulSoup
+from concurrent.futures import ThreadPoolExecutor, as_completed # dodane as shit
 
 URL = "https://bridges.torproject.org/bridges?transport=obfs4"
 PLIK_WYJSCIA = "mostekiat=2.txt"
 PROXY_LIST_URL = "https://api.proxyscrape.com/v2/?request=displayproxies&protocol=https&timeout=2000&country=all&ssl=all&anonymity=all" 
+LICZBA_WATKOW = 5
 
 USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/91.0.4472.124 Safari/537.36",
@@ -118,27 +120,40 @@ def zapisz_do_pliku(mostki):
     except Exception as e:
         print(f"Błąd przy zapisie do pliku: {e}")
 
+def procesuj_proxy():
+    proxy = pobierz_losowe_proxy()
+    if proxy is None:
+        print("Brak działającego proxy.")
+        return []
+    return pobierz_mostki(proxy=proxy)
+
 def main():
     while True:
-        print("Sprawdzam nowe mostki obfs4...")
+        print(f"\nSprawdzam nowe mostki obfs4 w {LICZBA_WATKOW} wątkach...\n")
 
-        proxy = pobierz_losowe_proxy()
-        if proxy is None:
-            print("Brak działającego proxy. Pomijam oczekiwanie.\n")
-            time.sleep(1)   # usunięto sleep
-            continue  
+        mostki_iat2 = []
+        mostki_inne = []
 
-        iat2, wszystkie = pobierz_mostki(proxy=proxy)
+        with ThreadPoolExecutor(max_workers=LICZBA_WATKOW) as executor:
+            futures = [executor.submit(procesuj_proxy) for _ in range(LICZBA_WATKOW)]
+            for future in as_completed(futures):
+                iat2, wszystkie = future.result()
+                if iat2:
+                    mostki_iat2.extend(iat2)
+                elif wszystkie:
+                    mostki_inne.extend(wszystkie)
 
-        if iat2:
-            print(f"Znaleziono {len(iat2)} mostek/mostki z iat-mode=2:")
-            zapisz_do_pliku(iat2)
-        elif wszystkie:
+        if mostki_iat2:
+            print(f"Znaleziono łącznie {len(mostki_iat2)} mostków z iat-mode=2.")
+            zapisz_do_pliku(mostki_iat2)
+        elif mostki_inne:
             print("Nie znaleziono mostków z iat-mode=2, ale znaleziono inne obfs4:")
-            for m in wszystkie:
+            for m in mostki_inne:
                 print("   ", m)
         else:
             print("Nie znaleziono żadnych mostków obfs4.")
+
+        time.sleep(1)
 
 if __name__ == "__main__":
     try:
