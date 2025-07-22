@@ -6,8 +6,8 @@ import re
 from bs4 import BeautifulSoup
 
 URL = "https://bridges.torproject.org/bridges?transport=obfs4"
-PLIK_WYJSCIA = "gotowemostki.txt"
-PROXY_LIST_URL = "https://api.proxyscrape.com/v2/?request=displayproxies&protocol=https&timeout=500&country=all&ssl=all&anonymity=all"  # lub Twój własny plik
+PLIK_WYJSCIA = "mostekiat=2.txt"
+PROXY_LIST_URL = "https://api.proxyscrape.com/v2/?request=displayproxies&protocol=https&timeout=2000&country=all&ssl=all&anonymity=all" 
 
 USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/91.0.4472.124 Safari/537.36",
@@ -124,9 +124,9 @@ def main():
 
         proxy = pobierz_losowe_proxy()
         if proxy is None:
-            print("Brak działającego proxy. Czekam 3 sekundy...\n")
-            time.sleep(3)
-            continue
+            print("Brak działającego proxy. Pomijam oczekiwanie.\n")
+            time.sleep(1)   # usunięto sleep
+            continue  
 
         iat2, wszystkie = pobierz_mostki(proxy=proxy)
 
@@ -139,10 +139,6 @@ def main():
                 print("   ", m)
         else:
             print("Nie znaleziono żadnych mostków obfs4.")
-
-        sleep_time = random.uniform(3, 5)
-        print(f"Czekam {round(sleep_time,1)} sek...\n")
-        time.sleep(sleep_time)
 
 if __name__ == "__main__":
     try:
