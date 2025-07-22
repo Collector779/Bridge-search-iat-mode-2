@@ -124,7 +124,7 @@ def procesuj_proxy():
     proxy = pobierz_losowe_proxy()
     if proxy is None:
         print("Brak działającego proxy.")
-        return []
+        return [], []
     return pobierz_mostki(proxy=proxy)
 
 def main():
