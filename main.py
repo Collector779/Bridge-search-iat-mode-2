@@ -111,12 +111,27 @@ def pobierz_mostki(proxy=None):
 
 def zapisz_do_pliku(mostki):
     try:
+        # Wczytaj już istniejące mostki z pliku do zbioru (szybkie sprawdzanie duplikatów)
+        try:
+            with open(PLIK_WYJSCIA, "r", encoding="utf-8") as f:
+                zapisane = set(line.strip() for line in f if line.strip())
+        except FileNotFoundError:
+            zapisane = set()
+
+        nowe_mostki = [m for m in mostki if m not in zapisane]
+
+        if not nowe_mostki:
+            print("Brak nowych mostków do zapisania (wszystkie były już w pliku).")
+            return
+
         with open(PLIK_WYJSCIA, "a", encoding="utf-8") as f:
-            for m in mostki:
+            for m in nowe_mostki:
                 f.write(m + "\n")
-        print(f"Zapisano {len(mostki)} mostek/mostki do pliku.")
-        for m in mostki:
+
+        print(f"Zapisano {len(nowe_mostki)} nowych mostków do pliku.")
+        for m in nowe_mostki:
             print("   ", m)
+
     except Exception as e:
         print(f"Błąd przy zapisie do pliku: {e}")
 
