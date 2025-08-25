@@ -4,7 +4,7 @@ import random
 import html
 import re
 from bs4 import BeautifulSoup
-from concurrent.futures import ThreadPoolExecutor, as_completed # dodane as shit
+from concurrent.futures import ThreadPoolExecutor, as_completed # dodane as shit ada
 
 URL = "https://bridges.torproject.org/bridges?transport=obfs4"
 PLIK_WYJSCIA = "mostekiat=2.txt"
